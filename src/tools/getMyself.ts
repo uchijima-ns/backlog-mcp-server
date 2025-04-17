@@ -3,7 +3,7 @@ import { Backlog } from 'backlog-js';
 import { buildToolSchema, Output, ToolDefinition } from "../toolDefinition.js";
 import { TranslationHelper } from "../createTranslationHelper.js";
 
-const getMyselfSchema = buildToolSchema(t => ({}));
+const getMyselfSchema = buildToolSchema(_t => ({}));
 
 export const getMyselfTool = (backlog: Backlog, { t }: TranslationHelper): ToolDefinition<ReturnType<typeof getMyselfSchema>, Output> => {
   return {

@@ -1,6 +1,6 @@
 import { addIssueTool } from "./addIssue.js";
 import { jest, describe, it, expect } from '@jest/globals'; 
-import type { Backlog, Entity } from "backlog-js";
+import type { Backlog } from "backlog-js";
 import { createTranslationHelper } from "../createTranslationHelper.js";
 
 describe("addIssueTool", () => {

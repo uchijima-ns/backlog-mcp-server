@@ -1,7 +1,5 @@
 import { cosmiconfigSync } from "cosmiconfig";
 
-type TranslationMap = Record<string, string>;
-
 export interface TranslationHelper {
   t: (key: string, fallback: string) => string;
 }
@@ -39,27 +37,5 @@ export function createTranslationHelper(options?: {
     return value;
   }
 
-  function dump() {
-    console.log('[translation] Used keys:\n' + JSON.stringify(usedKeys, null, 2));
-  }
-
   return { t };
 }
-// export function createTranslationHelper(
-//   source: TranslationMap = {},
-//   options?: { prefix?: string }
-// ): TranslationHelper {
-//   const map = { ...source };
-//   const prefix = options?.prefix ?? '';
-
-//   function t(key: string, fallback: string): string {
-//     const fullKey = (prefix + key).toUpperCase();
-//     return map[fullKey] ?? fallback;
-//   }
-
-//   function dump() {
-//     console.log('[translation] used keys:', Object.keys(map));
-//   }
-
-//   return { t, dump };
-// }

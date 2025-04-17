@@ -1,6 +1,6 @@
 import { createTranslationHelper } from './createTranslationHelper';
 import { writeFileSync, unlinkSync } from 'fs';
-import { jest, describe, it, expect, beforeEach } from '@jest/globals'; 
+import { describe, it, expect, beforeEach } from '@jest/globals'; 
 import path from 'path';
 
 const TEMP_CONFIG_PATH = path.resolve(process.cwd(), '.backlog-mcp-serverrc.json');
@@ -11,7 +11,9 @@ describe('createTranslationHelper', () => {
     delete process.env.BACKLOG_MCP_HELLO;
     try {
       unlinkSync(TEMP_CONFIG_PATH);
-    } catch {}
+    } catch {
+    // noop: cannot do anything
+    }
   });
 
   it('returns fallback if no env or config is present', () => {

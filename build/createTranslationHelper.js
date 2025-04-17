@@ -26,18 +26,3 @@ export function createTranslationHelper(options) {
     }
     return { t };
 }
-// export function createTranslationHelper(
-//   source: TranslationMap = {},
-//   options?: { prefix?: string }
-// ): TranslationHelper {
-//   const map = { ...source };
-//   const prefix = options?.prefix ?? '';
-//   function t(key: string, fallback: string): string {
-//     const fullKey = (prefix + key).toUpperCase();
-//     return map[fullKey] ?? fallback;
-//   }
-//   function dump() {
-//     console.log('[translation] used keys:', Object.keys(map));
-//   }
-//   return { t, dump };
-// }

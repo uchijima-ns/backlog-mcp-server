@@ -3,7 +3,7 @@ import { Backlog } from 'backlog-js';
 import { buildToolSchema, Output, ToolDefinition } from "../toolDefinition.js";
 import { TranslationHelper } from "../createTranslationHelper.js";
 
-const resetUnreadNotificationCountSchema = buildToolSchema(t => ({}));
+const resetUnreadNotificationCountSchema = buildToolSchema(_t => ({}));
 
 export const resetUnreadNotificationCountTool = (backlog: Backlog, { t }: TranslationHelper): ToolDefinition<ReturnType<typeof resetUnreadNotificationCountSchema>, Output> => {
   return {

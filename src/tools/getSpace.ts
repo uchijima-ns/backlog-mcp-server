@@ -3,7 +3,7 @@ import { Backlog } from 'backlog-js';
 import { buildToolSchema, Output, ToolDefinition } from "../toolDefinition.js";
 import { TranslationHelper } from "../createTranslationHelper.js";
 
-const getSpaceSchema = buildToolSchema(t => ({}));
+const getSpaceSchema = buildToolSchema(_t => ({}));
 
 export const getSpaceTool = (backlog: Backlog, { t }: TranslationHelper): ToolDefinition<ReturnType<typeof getSpaceSchema>, Output> => {
   return {
