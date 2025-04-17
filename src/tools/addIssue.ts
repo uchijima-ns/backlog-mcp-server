@@ -1,53 +1,35 @@
 import { z } from "zod";
 import { Backlog } from 'backlog-js';
-import { Output, ToolDefinition } from "../toolDefinition.js";
+import { buildToolSchema, Output, ToolDefinition } from "../toolDefinition.js";
+import { TranslationHelper } from "../createTranslationHelper.js";
 
-const schema = {
-  projectId: z.number().describe("Project ID"),
-  summary: z.string().describe("Summary of the issue"),
-  issueTypeId: z.number().describe("Issue type ID"),
-  priorityId: z.number().describe("Priority ID"),
-  description: z.string().optional().describe("Detailed description of the issue"),
-  startDate: z.string().optional().describe("Scheduled start date (yyyy-MM-dd)"),
-  dueDate: z.string().optional().describe("Scheduled due date (yyyy-MM-dd)"),
-  estimatedHours: z.number().optional().describe("Estimated work hours"),
-  actualHours: z.number().optional().describe("Actual work hours"),
-  categoryId: z.array(z.number()).optional().describe("Category IDs"),
-  versionId: z.array(z.number()).optional().describe("Version IDs"),
-  milestoneId: z.array(z.number()).optional().describe("Milestone IDs"),
-  assigneeId: z.number().optional().describe("User ID of the assignee"),
-  notifiedUserId: z.array(z.number()).optional().describe("User IDs to notify"),
-  attachmentId: z.array(z.number()).optional().describe("Attachment IDs"),
-  parentIssueId: z.number().optional().describe("Parent issue ID"),
-  customFieldId: z.array(z.number()).optional().describe("Custom field IDs"),
-  customFieldValue: z.array(z.string()).optional().describe("Values for custom fields"),
-};
+const addIssueSchema = buildToolSchema(t => ({
+  projectId: z.number().describe(t("TOOL_ADD_ISSUE_PROJECT_ID", "Project ID")),
+  summary: z.string().describe(t("TOOL_ADD_ISSUE_SUMMARY", "Summary of the issue")),
+  issueTypeId: z.number().describe(t("TOOL_ADD_ISSUE_ISSUE_TYPE_ID", "Issue type ID")),
+  priorityId: z.number().describe(t("TOOL_ADD_ISSUE_PRIORITY_ID", "Priority ID")),
+  description: z.string().optional().describe(t("TOOL_ADD_ISSUE_DESCRIPTION", "Detailed description of the issue")),
+  startDate: z.string().optional().describe(t("TOOL_ADD_ISSUE_START_DATE", "Scheduled start date (yyyy-MM-dd)")),
+  dueDate: z.string().optional().describe(t("TOOL_ADD_ISSUE_DUE_DATE", "Scheduled due date (yyyy-MM-dd)")),
+  estimatedHours: z.number().optional().describe(t("TOOL_ADD_ISSUE_ESTIMATED_HOURS", "Estimated work hours")),
+  actualHours: z.number().optional().describe(t("TOOL_ADD_ISSUE_ACTUAL_HOURS", "Actual work hours")),
+  categoryId: z.array(z.number()).optional().describe(t("TOOL_ADD_ISSUE_CATEGORY_ID", "Category IDs")),
+  versionId: z.array(z.number()).optional().describe(t("TOOL_ADD_ISSUE_VERSION_ID", "Version IDs")),
+  milestoneId: z.array(z.number()).optional().describe(t("TOOL_ADD_ISSUE_MILESTONE_ID", "Milestone IDs")),
+  assigneeId: z.number().optional().describe(t("TOOL_ADD_ISSUE_ASSIGNEE_ID", "User ID of the assignee")),
+  notifiedUserId: z.array(z.number()).optional().describe(t("TOOL_ADD_ISSUE_NOTIFIED_USER_ID", "User IDs to notify")),
+  attachmentId: z.array(z.number()).optional().describe(t("TOOL_ADD_ISSUE_ATTACHMENT_ID", "Attachment IDs")),
+  parentIssueId: z.number().optional().describe(t("TOOL_ADD_ISSUE_PARENT_ISSUE_ID", "Parent issue ID")),
+  customFieldId: z.array(z.number()).optional().describe(t("TOOL_ADD_ISSUE_CUSTOM_FIELD_ID", "Custom field IDs")),
+  customFieldValue: z.array(z.string()).optional().describe(t("TOOL_ADD_ISSUE_CUSTOM_FIELD_VALUE", "Values for custom fields")),
+}));
 
-export const addIssueTool = (backlog: Backlog): ToolDefinition<typeof schema, Output> => ({
-  name: "add_issue",
-  description: "Creates a new issue in the specified project.",
-  schema: z.object(schema),
-  handler: async ({
-    projectId,
-    summary,
-    issueTypeId,
-    priorityId,
-    description,
-    startDate,
-    dueDate,
-    estimatedHours,
-    actualHours,
-    categoryId,
-    versionId,
-    milestoneId,
-    assigneeId,
-    notifiedUserId,
-    attachmentId,
-    parentIssueId,
-    customFieldId,
-    customFieldValue
-  }) => {
-    const issue = await backlog.postIssue({
+export const addIssueTool = (backlog: Backlog, { t }: TranslationHelper): ToolDefinition<ReturnType<typeof addIssueSchema>, Output> => {
+  return {
+    name: "add_issue",
+    description: t("TOOL_ADD_ISSUE_DESCRIPTION", "Creates a new issue in the specified project."),
+    schema: z.object(addIssueSchema(t)),
+    handler: async ({
       projectId,
       summary,
       issueTypeId,
@@ -66,10 +48,31 @@ export const addIssueTool = (backlog: Backlog): ToolDefinition<typeof schema, Ou
       parentIssueId,
       customFieldId,
       customFieldValue
-    });
+    }) => {
+      const issue = await backlog.postIssue({
+        projectId,
+        summary,
+        issueTypeId,
+        priorityId,
+        description,
+        startDate,
+        dueDate,
+        estimatedHours,
+        actualHours,
+        categoryId,
+        versionId,
+        milestoneId,
+        assigneeId,
+        notifiedUserId,
+        attachmentId,
+        parentIssueId,
+        customFieldId,
+        customFieldValue
+      });
 
-    return {
-      content: [{ type: "text", text: JSON.stringify(issue, null, 2) }]
-    };
-  }
-});
+      return {
+        content: [{ type: "text", text: JSON.stringify(issue, null, 2) }]
+      };
+    }
+  };
+};

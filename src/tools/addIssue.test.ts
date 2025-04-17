@@ -1,6 +1,7 @@
 import { addIssueTool } from "./addIssue.js";
 import { jest, describe, it, expect } from '@jest/globals'; 
 import type { Backlog, Entity } from "backlog-js";
+import { createTranslationHelper } from "../createTranslationHelper.js";
 
 describe("addIssueTool", () => {
   const mockBacklog: Partial<Backlog> = {
@@ -65,7 +66,8 @@ describe("addIssueTool", () => {
     })
   };
 
-  const tool = addIssueTool(mockBacklog as Backlog);
+  const mockTranslationHelper = createTranslationHelper();
+  const tool = addIssueTool(mockBacklog as Backlog, mockTranslationHelper);
 
   it("returns created issue as formatted JSON text", async () => {
     const result = await tool.handler({

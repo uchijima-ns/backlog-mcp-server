@@ -1,0 +1,124 @@
+import { getPullRequestsTool } from "./getPullRequests.js";
+import { jest, describe, it, expect } from '@jest/globals'; 
+import type { Backlog } from "backlog-js";
+import { createTranslationHelper } from "../createTranslationHelper.js";
+
+describe("getPullRequestsTool", () => {
+  const mockBacklog: Partial<Backlog> = {
+    getPullRequests: jest.fn<() => Promise<any>>().mockResolvedValue([
+      {
+        id: 1,
+        projectId: 100,
+        repositoryId: 200,
+        number: 1,
+        summary: "Fix bug in login",
+        description: "This PR fixes a bug in the login process",
+        base: "main",
+        branch: "fix/login-bug",
+        status: {
+          id: 1,
+          name: "Open"
+        },
+        assignee: {
+          id: 1,
+          userId: "user1",
+          name: "User One"
+        },
+        issue: {
+          id: 1000,
+          issueKey: "TEST-1",
+          summary: "Login bug"
+        },
+        baseCommit: "abc123",
+        branchCommit: "def456",
+        closeAt: null,
+        mergeAt: null,
+        createdUser: {
+          id: 1,
+          userId: "user1",
+          name: "User One"
+        },
+        created: "2023-01-01T00:00:00Z",
+        updatedUser: {
+          id: 1,
+          userId: "user1",
+          name: "User One"
+        },
+        updated: "2023-01-01T00:00:00Z"
+      },
+      {
+        id: 2,
+        projectId: 100,
+        repositoryId: 200,
+        number: 2,
+        summary: "Add new feature",
+        description: "This PR adds a new feature",
+        base: "main",
+        branch: "feature/new-feature",
+        status: {
+          id: 1,
+          name: "Open"
+        },
+        assignee: {
+          id: 2,
+          userId: "user2",
+          name: "User Two"
+        },
+        issue: {
+          id: 1001,
+          issueKey: "TEST-2",
+          summary: "New feature"
+        },
+        baseCommit: "ghi789",
+        branchCommit: "jkl012",
+        closeAt: null,
+        mergeAt: null,
+        createdUser: {
+          id: 2,
+          userId: "user2",
+          name: "User Two"
+        },
+        created: "2023-01-02T00:00:00Z",
+        updatedUser: {
+          id: 2,
+          userId: "user2",
+          name: "User Two"
+        },
+        updated: "2023-01-02T00:00:00Z"
+      }
+    ])
+  };
+
+  const mockTranslationHelper = createTranslationHelper();
+  const tool = getPullRequestsTool(mockBacklog as Backlog, mockTranslationHelper);
+
+  it("returns pull requests list as formatted JSON text", async () => {
+    const result = await tool.handler({
+      projectIdOrKey: "TEST",
+      repoIdOrName: "test-repo"
+    });
+
+    expect(result.content).toHaveLength(1);
+    expect(result.content[0].type).toBe("text");
+    expect(result.content[0].text).toContain("Fix bug in login");
+    expect(result.content[0].text).toContain("Add new feature");
+  });
+
+  it("calls backlog.getPullRequests with correct params", async () => {
+    const params = {
+      projectIdOrKey: "TEST",
+      repoIdOrName: "test-repo",
+      statusId: [1, 2],
+      assigneeId: [1],
+      count: 20
+    };
+    
+    await tool.handler(params);
+    
+    expect(mockBacklog.getPullRequests).toHaveBeenCalledWith("TEST", "test-repo", {
+      statusId: [1, 2],
+      assigneeId: [1],
+      count: 20
+    });
+  });
+});

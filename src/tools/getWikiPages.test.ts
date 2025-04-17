@@ -1,6 +1,7 @@
 import { getWikiPagesTool } from "./getWikiPages.js";
 import { jest, describe, it, expect } from '@jest/globals'; 
 import type { Backlog } from "backlog-js";
+import { createTranslationHelper } from "../createTranslationHelper.js";
 
 describe("getWikiPagesTool", () => {
   const mockBacklog: Partial<Backlog> = {
@@ -60,7 +61,8 @@ describe("getWikiPagesTool", () => {
     ])
   };
 
-  const tool = getWikiPagesTool(mockBacklog as Backlog);
+  const mockTranslationHelper = createTranslationHelper();
+  const tool = getWikiPagesTool(mockBacklog as Backlog, mockTranslationHelper);
 
   it("returns wiki pages as formatted JSON text", async () => {
     const result = await tool.handler({

@@ -1,6 +1,7 @@
 import { getProjectListTool } from "./getProjectList.js";
 import { jest, describe, it, expect } from '@jest/globals'; 
 import type { Backlog, Entity } from "backlog-js";
+import { createTranslationHelper } from "../createTranslationHelper.js"; 
 
 describe("getProjectListTool", () => {
   const mockBacklog: Partial<Backlog> = {
@@ -43,8 +44,9 @@ describe("getProjectListTool", () => {
       }
     ])
   };
+  const { t } = createTranslationHelper();
 
-  const tool = getProjectListTool(mockBacklog as Backlog);
+  const tool = getProjectListTool(mockBacklog as Backlog, { t });
 
   it("returns project list as formatted JSON text", async () => {
     const result = await tool.handler({ archived: false, all: true });
@@ -61,5 +63,16 @@ describe("getProjectListTool", () => {
       archived: true,
       all: false
     });
+  });
+
+
+  it("has correct key for translated description", () => {
+    expect(tool.description).toBe(t("TOOL_GET_PROJECT_LIST_DESCRIPTION", ""));
+  });
+
+  it("has correct key for schema field descriptions", () => {
+    const shape = tool.schema.shape;
+    expect(shape.archived.description).toBe(t("TOOL_GET_PROJECT_LIST_ARCHIVED", ""));
+    expect(shape.all.description).toBe(t("TOOL_GET_PROJECT_LIST_ALL", ""));
   });
 });

@@ -1,7 +1,7 @@
 import { allTools } from "./tools/tools.js";
-export function registerTools(server, backlog) {
+export function registerTools(server, backlog, helper) {
     const registered = new Set();
-    for (const tool of allTools(backlog)) {
+    for (const tool of allTools(backlog, helper)) {
         if (registered.has(tool.name)) {
             throw new Error(`Duplicate tool name detected: "${tool.name}"`);
         }

@@ -1,6 +1,7 @@
 import { deleteProjectTool } from "./deleteProject.js";
 import { jest, describe, it, expect } from '@jest/globals'; 
 import type { Backlog } from "backlog-js";
+import { createTranslationHelper } from "../createTranslationHelper.js";
 
 describe("deleteProjectTool", () => {
   const mockBacklog: Partial<Backlog> = {
@@ -17,7 +18,8 @@ describe("deleteProjectTool", () => {
     })
   };
 
-  const tool = deleteProjectTool(mockBacklog as Backlog);
+  const mockTranslationHelper = createTranslationHelper();
+  const tool = deleteProjectTool(mockBacklog as Backlog, mockTranslationHelper);
 
   it("returns deleted project information as formatted JSON text", async () => {
     const result = await tool.handler({

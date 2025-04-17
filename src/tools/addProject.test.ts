@@ -1,6 +1,7 @@
 import { addProjectTool } from "./addProject.js";
 import { jest, describe, it, expect } from '@jest/globals'; 
 import type { Backlog } from "backlog-js";
+import { createTranslationHelper } from "../createTranslationHelper.js";
 
 describe("addProjectTool", () => {
   const mockBacklog: Partial<Backlog> = {
@@ -17,7 +18,8 @@ describe("addProjectTool", () => {
     })
   };
 
-  const tool = addProjectTool(mockBacklog as Backlog);
+  const mockTranslationHelper = createTranslationHelper();
+  const tool = addProjectTool(mockBacklog as Backlog, mockTranslationHelper);
 
   it("returns created project as formatted JSON text", async () => {
     const result = await tool.handler({

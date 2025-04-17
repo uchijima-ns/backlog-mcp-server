@@ -5,6 +5,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import dotenv from "dotenv";
 import * as backlogjs from 'backlog-js';
 import { registerTools } from "./registerTools.js";
+import { createTranslationHelper } from "./createTranslationHelper.js";
 
 dotenv.config();
 
@@ -20,8 +21,10 @@ const server = new McpServer({
   },
 });
 
+const transHelper = createTranslationHelper()
+
 // Register all tools
-registerTools(server, backlog);
+registerTools(server, backlog, transHelper);
 
 async function main() {
   const transport = new StdioServerTransport();

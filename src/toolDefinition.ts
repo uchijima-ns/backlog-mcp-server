@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { TranslationHelper } from "./createTranslationHelper.js";
 
 export type ToolDefinition<
   Shape extends z.ZodRawShape,
@@ -11,3 +12,7 @@ export type ToolDefinition<
 };
 
 export type Output = { content: { type: "text"; text: string }[] };
+
+export const buildToolSchema = <
+  T extends z.ZodRawShape
+>(fn: (t: TranslationHelper["t"]) => T) => fn;

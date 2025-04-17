@@ -1,1 +1,1 @@
-export {};
+export const buildToolSchema = (fn) => fn;
