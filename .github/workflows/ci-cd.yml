@@ -1,0 +1,66 @@
+name: CI / CD
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*.*.*'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  ci:
+    if: github.event_name != 'push' || !startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    name: 🧪 Lint, Test, Build
+
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v3
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📦 Install deps
+        run: npm ci
+
+      - name: 🔍 Lint (if exists)
+        run: npm run lint
+        continue-on-error: true  # 任意
+
+      - name: 🧪 Run tests
+        run: npm test
+
+      - name: 🛠 Build
+        run: npm run build
+
+  npm-publish:
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    name: 🚀 Publish to npm
+
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v3
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: 📦 Install deps
+        run: npm ci
+
+      - name: 🛠 Build
+        run: npm run build
+
+      - name: 🚀 npm publish
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
