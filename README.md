@@ -36,7 +36,7 @@ The easiest way to use this MCP server is through Claude's MCP configuration:
       "command": "npx",
       "args": [
         "-y",
-        "github:trknhr/backlog-mcp-server"
+        "github:nulab/backlog-mcp-server"
       ],
       "env": {
         "BACKLOG_DOMAIN": "your-domain.backlog.com",
