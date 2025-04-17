@@ -1,4 +1,3 @@
-// import type { Backlog } from "./client/backlog";
 import { allTools } from "./tools/tools.js";
 export function registerTools(server, backlog) {
     const registered = new Set();
