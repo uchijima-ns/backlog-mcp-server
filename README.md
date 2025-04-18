@@ -196,8 +196,94 @@ Create a new pull request from branch "feature/new-feature" to "main" in the rep
 ### Watching Items
 
 ```
-Show me all items I'm watching
+Show me all items I'm watching 
 ```
+
+# `.backlog-mcp-serverrc.json` for backlog-mcp-server
+
+## i18n / Overriding Descriptions
+
+You can override the descriptions of tools by creating a `.backlog-mcp-serverrc.json` file in your **home directory**.
+
+The file should contain a JSON object with the tool names as keys and the new descriptions as values.  
+For example:
+
+```json
+{
+  "TOOL_ADD_ISSUE_COMMENT_DESCRIPTION": "An alternative description",
+  "TOOL_CREATE_PROJECT_DESCRIPTION": "Create a new project in Backlog"
+}
+```
+
+When the server starts, it determines the final description for each tool based on the following priority:
+
+1. Environment variables (e.g., `BACKLOG_MCP_TOOL_ADD_ISSUE_COMMENT_DESCRIPTION`)
+2. Entries in `.backlog-mcp-serverrc.json` - Supported configuration file formats: .json, .yaml, .yml
+3. Built-in fallback values (English)
+
+### Exporting Current Translations
+
+You can export the current default translations (including any overrides) by running the binary with the --export-translations flag.
+
+This will print all tool descriptions to stdout, including any customizations you have made.
+
+Example:
+
+```bash
+npx github:nulab/backlog-mcp-server --export-translations
+```
+
+### Using a Japanese Translation Template
+A sample Japanese configuration file is provided at:
+
+```bash
+translationConfig/.backlog-mcp-serverrc.json.example
+```
+
+To use it, copy it to your home directory as .backlog-mcp-serverrc.json:
+
+```bash
+mv translationConfig/.backlog-mcp-serverrc.json.example ~/.backlog-mcp-serverrc.json
+```
+
+You can then edit this file to customize the descriptions as needed.
+
+
+### Using Environment Variables
+Alternatively, you can override tool descriptions via environment variables.
+
+The environment variable names are based on the tool keys, prefixed with BACKLOG_MCP_ and written in uppercase.
+
+Example:
+To override the TOOL_ADD_ISSUE_COMMENT_DESCRIPTION:
+
+```bash
+export BACKLOG_MCP_TOOL_ADD_ISSUE_COMMENT_DESCRIPTION="An alternative description"
+```
+
+or 
+
+```json
+{
+  "mcpServers": {
+    "backlog": {
+      "command": "npx",
+      "args": [
+        "github:nulab/backlog-mcp-server"
+      ],
+      "env": {
+        "BACKLOG_DOMAIN": "",
+        "BACKLOG_API_KEY": ""
+        "BACKLOG_MCP_TOOL_ADD_ISSUE_COMMENT_DESCRIPTION": "課題に新しいコメントを追加します。"
+      }
+    }
+  }
+}
+```
+
+The server loads the config file synchronously at startup.
+
+Environment variables always take precedence over the config file.
 
 ## Development
 

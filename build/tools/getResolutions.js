@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { buildToolSchema } from "../toolDefinition.js";
-const getResolutionsSchema = buildToolSchema(t => ({}));
+const getResolutionsSchema = buildToolSchema(_t => ({}));
 export const getResolutionsTool = (backlog, { t }) => {
     return {
         name: "get_resolutions",

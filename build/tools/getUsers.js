@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { buildToolSchema } from "../toolDefinition.js";
-const getUsersSchema = buildToolSchema(t => ({}));
+const getUsersSchema = buildToolSchema(_t => ({}));
 export const getUsersTool = (backlog, { t }) => {
     return {
         name: "get_users",

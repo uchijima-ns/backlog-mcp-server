@@ -26,6 +26,13 @@ const transHelper = createTranslationHelper()
 // Register all tools
 registerTools(server, backlog, transHelper);
 
+if (process.argv.includes("--export-translations")) {
+  const data = transHelper.dump();
+  // eslint-disable-next-line no-console
+  console.log(JSON.stringify(data, null, 2));
+  process.exit(0);
+}
+
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);

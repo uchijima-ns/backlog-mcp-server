@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { buildToolSchema } from "../toolDefinition.js";
-const getPrioritiesSchema = buildToolSchema(t => ({}));
+const getPrioritiesSchema = buildToolSchema(_t => ({}));
 export const getPrioritiesTool = (backlog, { t }) => {
     return {
         name: "get_priorities",

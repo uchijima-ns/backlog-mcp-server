@@ -1,10 +1,12 @@
 import { cosmiconfigSync } from "cosmiconfig";
+import os from "os";
 export function createTranslationHelper(options) {
     const usedKeys = {};
     const configName = options?.configName ?? 'backlog-mcp-server';
     // Load config file
     const explorer = cosmiconfigSync(configName);
-    const configResult = explorer.search();
+    const searchPath = options?.searchDir ?? os.homedir();
+    const configResult = explorer.search(searchPath);
     const config = configResult?.config || {};
     function toEnvKey(key) {
         return `BACKLOG_MCP_${key}`;
@@ -22,7 +24,7 @@ export function createTranslationHelper(options) {
         return value;
     }
     function dump() {
-        console.log('[translation] Used keys:\n' + JSON.stringify(usedKeys, null, 2));
+        return { ...usedKeys };
     }
-    return { t };
+    return { t, dump };
 }

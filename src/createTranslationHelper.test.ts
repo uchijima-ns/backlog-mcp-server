@@ -7,7 +7,6 @@ const TEMP_CONFIG_PATH = path.resolve(process.cwd(), '.backlog-mcp-serverrc.json
 
 describe('createTranslationHelper', () => {
   beforeEach(() => {
-    // クリーンアップ
     delete process.env.BACKLOG_MCP_HELLO;
     try {
       unlinkSync(TEMP_CONFIG_PATH);
@@ -17,7 +16,7 @@ describe('createTranslationHelper', () => {
   });
 
   it('returns fallback if no env or config is present', () => {
-    const { t } = createTranslationHelper();
+    const { t } = createTranslationHelper({ searchDir: process.cwd() });
     expect(t('HELLO', 'Fallback')).toBe('Fallback');
   });
 
@@ -28,7 +27,7 @@ describe('createTranslationHelper', () => {
       'utf-8'
     );
 
-    const { t } = createTranslationHelper();
+    const { t } = createTranslationHelper({ searchDir: process.cwd() });
     expect(t('HELLO', 'Fallback')).toBe('From config');
   });
 
@@ -41,13 +40,13 @@ describe('createTranslationHelper', () => {
 
     process.env.BACKLOG_MCP_HELLO = 'From env';
 
-    const { t } = createTranslationHelper();
+    const { t } = createTranslationHelper({ searchDir: process.cwd() });
     expect(t('HELLO', 'Fallback')).toBe('From env');
   });
 
   it('caches the first call to a key', () => {
     process.env.BACKLOG_MCP_HELLO = 'Cached value';
-    const { t } = createTranslationHelper();
+    const { t } = createTranslationHelper({ searchDir: process.cwd() });
 
     const first = t('HELLO', 'Fallback');
     process.env.BACKLOG_MCP_HELLO = 'Modified value';

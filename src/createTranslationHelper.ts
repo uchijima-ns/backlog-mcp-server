@@ -1,11 +1,14 @@
 import { cosmiconfigSync } from "cosmiconfig";
+import os from "os";
 
 export interface TranslationHelper {
   t: (key: string, fallback: string) => string;
+  dump: () => Record<string, string>;
 }
 
 export function createTranslationHelper(options?: {
   configName?: string;
+  searchDir?: string; 
 }): TranslationHelper {
   const usedKeys: Record<string, string> = {};
 
@@ -13,7 +16,9 @@ export function createTranslationHelper(options?: {
 
   // Load config file
   const explorer = cosmiconfigSync(configName);
-  const configResult = explorer.search();
+  const searchPath = options?.searchDir ?? os.homedir();
+
+  const configResult = explorer.search(searchPath);
   const config = configResult?.config || {};
 
   function toEnvKey(key: string): string {
@@ -37,5 +42,9 @@ export function createTranslationHelper(options?: {
     return value;
   }
 
-  return { t };
+  function dump(): Record<string, string> {
+    return { ...usedKeys };
+  }
+
+  return { t, dump};
 }

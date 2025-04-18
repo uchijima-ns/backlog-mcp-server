@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { buildToolSchema } from "../toolDefinition.js";
-const getSpaceSchema = buildToolSchema(t => ({}));
+const getSpaceSchema = buildToolSchema(_t => ({}));
 export const getSpaceTool = (backlog, { t }) => {
     return {
         name: "get_space",

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { buildToolSchema } from "../toolDefinition.js";
-const getMyselfSchema = buildToolSchema(t => ({}));
+const getMyselfSchema = buildToolSchema(_t => ({}));
 export const getMyselfTool = (backlog, { t }) => {
     return {
         name: "get_myself",

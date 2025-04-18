@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { buildToolSchema } from "../toolDefinition.js";
-const resetUnreadNotificationCountSchema = buildToolSchema(t => ({}));
+const resetUnreadNotificationCountSchema = buildToolSchema(_t => ({}));
 export const resetUnreadNotificationCountTool = (backlog, { t }) => {
     return {
         name: "reset_unread_notification_count",

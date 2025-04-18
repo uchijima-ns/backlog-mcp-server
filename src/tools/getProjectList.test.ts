@@ -44,9 +44,9 @@ describe("getProjectListTool", () => {
       }
     ])
   };
-  const { t } = createTranslationHelper();
+  const {t, dump} = createTranslationHelper();
 
-  const tool = getProjectListTool(mockBacklog as Backlog, { t });
+  const tool = getProjectListTool(mockBacklog as Backlog, {t, dump});
 
   it("returns project list as formatted JSON text", async () => {
     const result = await tool.handler({ archived: false, all: true });
