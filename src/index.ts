@@ -3,7 +3,7 @@
 // Licensed under the MIT License.
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StreamableHttpServerTransport } from "@modelcontextprotocol/sdk/server/http.js";
+import { StreamableHttpServerTransport } from "@modelcontextprotocol/sdk/server/http";
 import * as backlogjs from 'backlog-js';
 import dotenv from "dotenv";
 import { default as env } from 'env-var';
@@ -36,12 +36,11 @@ const refreshToken = env.get('BACKLOG_REFRESH_TOKEN')
   .asString();
 
 const oauth = new backlogjs.OAuth2({
-  host: domain,
   clientId,
   clientSecret,
 });
 
-let token = await oauth.refreshAccessToken(refreshToken);
+let token = await oauth.refreshAccessToken({ host: domain, refreshToken });
 
 const backlog = new backlogjs.Backlog({
   host: domain,
@@ -52,7 +51,7 @@ setTimeout(scheduleRefresh, Math.max(token.expires_in - 60, 60) * 1000);
 
 async function scheduleRefresh() {
   try {
-    token = await oauth.refreshAccessToken(token.refresh_token);
+    token = await oauth.refreshAccessToken({ host: domain, refreshToken: token.refresh_token });
     (backlog as any).accessToken = token.access_token;
     setTimeout(scheduleRefresh, Math.max(token.expires_in - 60, 60) * 1000);
   } catch (err) {
