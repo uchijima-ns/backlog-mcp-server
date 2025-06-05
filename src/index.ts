@@ -3,7 +3,8 @@
 // Licensed under the MIT License.
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StreamableHttpServerTransport } from "@modelcontextprotocol/sdk/server/http";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import express from "express";
 import * as backlogjs from 'backlog-js';
 import dotenv from "dotenv";
 import { default as env } from 'env-var';
@@ -147,9 +148,43 @@ if (argv.exportTranslations) {
 }
 
 async function main() {
-  const transport = new StreamableHttpServerTransport({ port });
-  await server.connect(transport);
-  console.error(`Backlog MCP Server running on http://0.0.0.0:${port}`);
+  const app = express();
+  app.use(express.json());
+
+  app.post('/mcp', async (req: express.Request, res: express.Response) => {
+    const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });
+    res.on('close', () => {
+      transport.close();
+    });
+    await server.connect(transport);
+    await transport.handleRequest(req, res, req.body);
+  });
+
+  app.get('/mcp', (req: express.Request, res: express.Response) => {
+    res.writeHead(405).end(JSON.stringify({
+      jsonrpc: '2.0',
+      error: {
+        code: -32000,
+        message: 'Method not allowed.'
+      },
+      id: null
+    }));
+  });
+
+  app.delete('/mcp', (req: express.Request, res: express.Response) => {
+    res.writeHead(405).end(JSON.stringify({
+      jsonrpc: '2.0',
+      error: {
+        code: -32000,
+        message: 'Method not allowed.'
+      },
+      id: null
+    }));
+  });
+
+  app.listen(port, () => {
+    console.error(`Backlog MCP Server running on http://0.0.0.0:${port}`);
+  });
 }
 
 main().catch((error) => {
