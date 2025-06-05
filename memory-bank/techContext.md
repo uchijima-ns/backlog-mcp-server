@@ -48,7 +48,9 @@ npm run build
 Create a `.env` file during development with the following variables:
 ```
 BACKLOG_DOMAIN=your-domain.backlog.com
-BACKLOG_API_KEY=your-api-key
+BACKLOG_CLIENT_ID=your-client-id
+BACKLOG_CLIENT_SECRET=your-client-secret
+BACKLOG_REFRESH_TOKEN=your-refresh-token
 ```
 
 ## Technical Constraints
@@ -94,7 +96,9 @@ graph TD
    ```bash
    docker run -i --rm \
      -e BACKLOG_DOMAIN=your-domain.backlog.com \
-     -e BACKLOG_API_KEY=your-api-key \
+     -e BACKLOG_CLIENT_ID=your-client-id \
+     -e BACKLOG_CLIENT_SECRET=your-client-secret \
+     -e BACKLOG_REFRESH_TOKEN=your-refresh-token \
      -v /path/to/.backlog-mcp-serverrc.json:/root/.backlog-mcp-serverrc.json:ro \
      ghcr.io/nulab/backlog-mcp-server
    ```
@@ -102,7 +106,9 @@ graph TD
 2. **Node.js**:
    ```bash
    BACKLOG_DOMAIN=your-domain.backlog.com \
-   BACKLOG_API_KEY=your-api-key \
+   BACKLOG_CLIENT_ID=your-client-id \
+   BACKLOG_CLIENT_SECRET=your-client-secret \
+   BACKLOG_REFRESH_TOKEN=your-refresh-token \
    node build/index.js
    ```
 
