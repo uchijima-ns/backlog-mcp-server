@@ -34,7 +34,7 @@ export function parseBacklogAPIError(err: unknown): ParsedBacklogAPIError {
         if (e._name === "BacklogAuthError") {
             return {
                 type: "BacklogAuthError",
-                message: `Authentication failed (HTTP ${status}). Please check your API key or permissions.`,
+                message: `Authentication failed (HTTP ${status}). Please check your OAuth credentials or permissions.`,
                 status,
                 url
             };

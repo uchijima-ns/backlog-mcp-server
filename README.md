@@ -24,7 +24,7 @@ A Model Context Protocol (MCP) server for interacting with the Backlog API. This
 
 - Docker
 - A Backlog account with API access
-- API key from your Backlog account
+- OAuth client credentials and refresh token from your Backlog account
 
 ### Option 1: Install via Docker
 
@@ -45,19 +45,23 @@ The easiest way to use this MCP server is through MCP configurations:
         "-i",
         "--rm",
         "-e", "BACKLOG_DOMAIN",
-        "-e", "BACKLOG_API_KEY",
+        "-e", "BACKLOG_CLIENT_ID",
+        "-e", "BACKLOG_CLIENT_SECRET",
+        "-e", "BACKLOG_REFRESH_TOKEN",
         "ghcr.io/nulab/backlog-mcp-server"
       ],
       "env": {
         "BACKLOG_DOMAIN": "your-domain.backlog.com",
-        "BACKLOG_API_KEY": "your-api-key"
+        "BACKLOG_CLIENT_ID": "your-client-id",
+        "BACKLOG_CLIENT_SECRET": "your-client-secret",
+        "BACKLOG_REFRESH_TOKEN": "your-refresh-token"
       }
     }
   }
 }
 ```
 
-Replace `your-domain.backlog.com` with your Backlog domain and `your-api-key` with your Backlog API key.
+Replace `your-domain.backlog.com` with your Backlog domain and set the OAuth credentials accordingly.
 
 ✅ If you cannot use --pull always, you can manually update the image using:
 
@@ -86,7 +90,9 @@ docker pull ghcr.io/nulab/backlog-mcp-server:latest
         ],
         "env": {
           "BACKLOG_DOMAIN": "your-domain.backlog.com",
-          "BACKLOG_API_KEY": "your-api-key"
+          "BACKLOG_CLIENT_ID": "your-client-id",
+          "BACKLOG_CLIENT_SECRET": "your-client-secret",
+          "BACKLOG_REFRESH_TOKEN": "your-refresh-token"
         }
       }
     }
@@ -275,13 +281,17 @@ Sample config:
         "-i",
         "--rm",
         "-e", "BACKLOG_DOMAIN",
-        "-e", "BACKLOG_API_KEY",
+        "-e", "BACKLOG_CLIENT_ID",
+        "-e", "BACKLOG_CLIENT_SECRET",
+        "-e", "BACKLOG_REFRESH_TOKEN",
         "-v", "/yourcurrentdir/.backlog-mcp-serverrc.json:/root/.backlog-mcp-serverrc.json:ro",
         "ghcr.io/nulab/backlog-mcp-server"
       ],
       "env": {
         "BACKLOG_DOMAIN": "your-domain.backlog.com",
-        "BACKLOG_API_KEY": "your-api-key"
+        "BACKLOG_CLIENT_ID": "your-client-id",
+        "BACKLOG_CLIENT_SECRET": "your-client-secret",
+        "BACKLOG_REFRESH_TOKEN": "your-refresh-token"
       }
     }
   }
@@ -335,13 +345,17 @@ To override the TOOL_ADD_ISSUE_COMMENT_DESCRIPTION:
         "-i",
         "--rm",
         "-e", "BACKLOG_DOMAIN",
-        "-e", "BACKLOG_API_KEY",
+        "-e", "BACKLOG_CLIENT_ID",
+        "-e", "BACKLOG_CLIENT_SECRET",
+        "-e", "BACKLOG_REFRESH_TOKEN",
         "-e", "BACKLOG_MCP_TOOL_ADD_ISSUE_COMMENT_DESCRIPTION"
         "ghcr.io/nulab/backlog-mcp-server"
       ],
       "env": {
         "BACKLOG_DOMAIN": "your-domain.backlog.com",
-        "BACKLOG_API_KEY": "your-api-key",
+        "BACKLOG_CLIENT_ID": "your-client-id",
+        "BACKLOG_CLIENT_SECRET": "your-client-secret",
+        "BACKLOG_REFRESH_TOKEN": "your-refresh-token",
         "BACKLOG_MCP_TOOL_ADD_ISSUE_COMMENT_DESCRIPTION": "An alternative description"
       }
     }
@@ -432,7 +446,9 @@ This section demonstrates advanced configuration using multiple environment vari
         "-i",
         "--rm",
         "-e", "BACKLOG_DOMAIN",
-        "-e", "BACKLOG_API_KEY",
+        "-e", "BACKLOG_CLIENT_ID",
+        "-e", "BACKLOG_CLIENT_SECRET",
+        "-e", "BACKLOG_REFRESH_TOKEN",
         "-e", "MAX_TOKENS",
         "-e", "OPTIMIZE_RESPONSE",
         "-e", "PREFIX",
@@ -441,7 +457,9 @@ This section demonstrates advanced configuration using multiple environment vari
       ],
       "env": {
         "BACKLOG_DOMAIN": "your-domain.backlog.com",
-        "BACKLOG_API_KEY": "your-api-key",
+        "BACKLOG_CLIENT_ID": "your-client-id",
+        "BACKLOG_CLIENT_SECRET": "your-client-secret",
+        "BACKLOG_REFRESH_TOKEN": "your-refresh-token",
         "MAX_TOKENS": "10000",
         "OPTIMIZE_RESPONSE": "1",
         "PREFIX": "backlog_",

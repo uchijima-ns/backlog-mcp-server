@@ -23,11 +23,42 @@ const domain = env.get('BACKLOG_DOMAIN')
   .required()
   .asString();
 
-const apiKey = env.get('BACKLOG_API_KEY')
+const clientId = env.get('BACKLOG_CLIENT_ID')
   .required()
   .asString();
 
-const backlog = new backlogjs.Backlog({ host: domain, apiKey: apiKey });
+const clientSecret = env.get('BACKLOG_CLIENT_SECRET')
+  .required()
+  .asString();
+
+const refreshToken = env.get('BACKLOG_REFRESH_TOKEN')
+  .required()
+  .asString();
+
+const oauth = new backlogjs.OAuth2({
+  host: domain,
+  clientId,
+  clientSecret,
+});
+
+let token = await oauth.refreshAccessToken(refreshToken);
+
+const backlog = new backlogjs.Backlog({
+  host: domain,
+  accessToken: token.access_token
+});
+
+setTimeout(scheduleRefresh, Math.max(token.expires_in - 60, 60) * 1000);
+
+async function scheduleRefresh() {
+  try {
+    token = await oauth.refreshAccessToken(token.refresh_token);
+    (backlog as any).accessToken = token.access_token;
+    setTimeout(scheduleRefresh, Math.max(token.expires_in - 60, 60) * 1000);
+  } catch (err) {
+    console.error('Failed to refresh OAuth token', err);
+  }
+}
 
 const argv = yargs(hideBin(process.argv))
   .option("max-tokens", {
