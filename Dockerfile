@@ -18,5 +18,6 @@ COPY --from=builder /app/package.json ./
 
 ARG VERSION
 ENV APP_VERSION=$VERSION
+EXPOSE 3000
 
 CMD ["node", "build/index.js"]
