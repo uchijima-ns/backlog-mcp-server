@@ -3,7 +3,7 @@
 // Licensed under the MIT License.
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { StreamableHttpServerTransport } from "@modelcontextprotocol/sdk/server/http.js";
 import * as backlogjs from 'backlog-js';
 import dotenv from "dotenv";
 import { default as env } from 'env-var';
@@ -81,6 +81,11 @@ const argv = yargs(hideBin(process.argv))
     describe: "Export translations and exit",
     default: false,
   })
+  .option("port", {
+    type: "number",
+    describe: "Port to listen on",
+    default: env.get("PORT").default("3000").asPortNumber(),
+  })
   .option("enable-toolsets", {
     type: "array",
     describe: `Specify which toolsets to enable. Defaults to 'all'.
@@ -113,6 +118,7 @@ const transHelper = createTranslationHelper()
 
 const maxTokens = argv.maxTokens;
 const prefix = argv.prefix;
+const port = argv.port;
 let enabledToolsets = argv.enableToolsets as string[];
 
 // If dynamic toolsets are enabled, remove "all" to allow for selective enabling via commands
@@ -142,9 +148,9 @@ if (argv.exportTranslations) {
 }
 
 async function main() {
-  const transport = new StdioServerTransport();
+  const transport = new StreamableHttpServerTransport({ port });
   await server.connect(transport);
-  console.error("Backlog MCP Server running on stdio");
+  console.error(`Backlog MCP Server running on http://0.0.0.0:${port}`);
 }
 
 main().catch((error) => {

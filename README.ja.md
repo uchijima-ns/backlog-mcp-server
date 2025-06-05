@@ -42,7 +42,7 @@ Backlog API とやり取りするための Model Context Protocol（MCP）サー
       "args": [
         "run",
         "--pull", "always",
-        "-i",
+        "-p", "3000:3000",
         "--rm",
         "-e", "BACKLOG_DOMAIN",
         "-e", "BACKLOG_CLIENT_ID",
@@ -222,7 +222,7 @@ PROJECT-KEYプロジェクトの「repo-name」リポジトリで、ブランチ
       "command": "docker",
       "args": [
         "run",
-        "-i",
+        "-p", "3000:3000",
         "--rm",
         "-e", "BACKLOG_DOMAIN",
         "-e", "BACKLOG_CLIENT_ID",
@@ -251,7 +251,7 @@ PROJECT-KEYプロジェクトの「repo-name」リポジトリで、ブランチ
 例：
 
 ```bash
-docker run -i --rm ghcr.io/nulab/backlog-mcp-server node build/index.js --export-translations
+docker run --rm -p 3000:3000 ghcr.io/nulab/backlog-mcp-server node build/index.js --export-translations
 ```
 
 または
@@ -286,7 +286,7 @@ translationConfig/.backlog-mcp-serverrc.json.example
       "command": "docker",
       "args": [
         "run",
-        "-i",
+        "-p", "3000:3000",
         "--rm",
         "-e", "BACKLOG_DOMAIN",
         "-e", "BACKLOG_CLIENT_ID",
@@ -387,7 +387,7 @@ MAX_TOKENS=10000
       "command": "docker",
       "args": [
         "run",
-        "-i",
+        "-p", "3000:3000",
         "--rm",
         "-e", "BACKLOG_DOMAIN",
         "-e", "BACKLOG_CLIENT_ID",

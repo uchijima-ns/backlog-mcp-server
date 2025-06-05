@@ -42,7 +42,7 @@ The easiest way to use this MCP server is through MCP configurations:
       "args": [
         "run",
         "--pull", "always",
-        "-i",
+        "-p", "3000:3000",
         "--rm",
         "-e", "BACKLOG_DOMAIN",
         "-e", "BACKLOG_CLIENT_ID",
@@ -278,7 +278,7 @@ Sample config:
       "command": "docker",
       "args": [
         "run",
-        "-i",
+        "-p", "3000:3000",
         "--rm",
         "-e", "BACKLOG_DOMAIN",
         "-e", "BACKLOG_CLIENT_ID",
@@ -307,7 +307,7 @@ This will print all tool descriptions to stdout, including any customizations yo
 Example:
 
 ```bash
-docker run -i --rm ghcr.io/nulab/backlog-mcp-server node build/index.js --export-translations
+docker run --rm -p 3000:3000 ghcr.io/nulab/backlog-mcp-server node build/index.js --export-translations
 ```
 
 or 
@@ -342,7 +342,7 @@ To override the TOOL_ADD_ISSUE_COMMENT_DESCRIPTION:
       "command": "docker",
       "args": [
         "run",
-        "-i",
+        "-p", "3000:3000",
         "--rm",
         "-e", "BACKLOG_DOMAIN",
         "-e", "BACKLOG_CLIENT_ID",
@@ -443,7 +443,7 @@ This section demonstrates advanced configuration using multiple environment vari
       "command": "docker",
       "args": [
         "run",
-        "-i",
+        "-p", "3000:3000",
         "--rm",
         "-e", "BACKLOG_DOMAIN",
         "-e", "BACKLOG_CLIENT_ID",
