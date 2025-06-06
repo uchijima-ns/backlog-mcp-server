@@ -6,6 +6,9 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import express from "express";
 import * as backlogjs from 'backlog-js';
+import crypto from 'node:crypto';
+import { promises as fs } from 'fs';
+import path from 'path';
 import dotenv from "dotenv";
 import { default as env } from 'env-var';
 import yargs from 'yargs';
@@ -32,7 +35,7 @@ const clientSecret = env.get('BACKLOG_CLIENT_SECRET')
   .required()
   .asString();
 
-const refreshToken = env.get('BACKLOG_REFRESH_TOKEN')
+const redirectUri = env.get('BACKLOG_REDIRECT_URI')
   .required()
   .asString();
 
@@ -41,20 +44,39 @@ const oauth = new backlogjs.OAuth2({
   clientSecret,
 });
 
-let token = await oauth.refreshAccessToken({ host: domain, refreshToken });
+const state = crypto.randomUUID();
+const authorizationURL = oauth.getAuthorizationURL({ host: domain, redirectUri, state });
+
+const tokenPath = path.resolve(process.env.HOME ?? '.', '.backlog-oauth.json');
+let token: backlogjs.AccessToken | null = null;
+
+try {
+  const saved = JSON.parse(await fs.readFile(tokenPath, 'utf-8')) as backlogjs.AccessToken;
+  if (saved.refresh_token) {
+    token = await oauth.refreshAccessToken({ host: domain, refreshToken: saved.refresh_token });
+    await fs.writeFile(tokenPath, JSON.stringify(token, null, 2), 'utf-8');
+  }
+} catch {
+  console.warn('No saved OAuth token. Visit /auth to authorize.');
+}
 
 const backlog = new backlogjs.Backlog({
   host: domain,
-  accessToken: token.access_token
+  accessToken: token?.access_token ?? ''
 });
 
-setTimeout(scheduleRefresh, Math.max(token.expires_in - 60, 60) * 1000);
+if (token) {
+  globalThis.setTimeout(scheduleRefresh, Math.max(token.expires_in - 60, 60) * 1000);
+}
 
 async function scheduleRefresh() {
   try {
+    if (!token) return;
     token = await oauth.refreshAccessToken({ host: domain, refreshToken: token.refresh_token });
+    await fs.writeFile(tokenPath, JSON.stringify(token, null, 2), 'utf-8');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (backlog as any).accessToken = token.access_token;
-    setTimeout(scheduleRefresh, Math.max(token.expires_in - 60, 60) * 1000);
+    globalThis.setTimeout(scheduleRefresh, Math.max(token.expires_in - 60, 60) * 1000);
   } catch (err) {
     console.error('Failed to refresh OAuth token', err);
   }
@@ -150,6 +172,37 @@ if (argv.exportTranslations) {
 async function main() {
   const app = express();
   app.use(express.json());
+
+  app.get('/auth', (_req: express.Request, res: express.Response) => {
+    res.redirect(authorizationURL);
+  });
+
+  app.get('/callback', async (req: express.Request, res: express.Response) => {
+    const code = req.query.code as string | undefined;
+    if (!code) {
+      res.status(400).send('Missing authorization code');
+      return;
+    }
+    try {
+      token = await oauth.getAccessToken({ host: domain, code, redirectUri });
+    await fs.writeFile(tokenPath, JSON.stringify(token, null, 2), 'utf-8');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (backlog as any).accessToken = token.access_token;
+    globalThis.setTimeout(scheduleRefresh, Math.max(token.expires_in - 60, 60) * 1000);
+      res.redirect('/');
+    } catch (e) {
+      console.error('Access Token Error', (e as Error).message);
+      res.redirect('/login');
+    }
+  });
+
+  app.get('/login', (_req: express.Request, res: express.Response) => {
+    res.send('<a href="/auth">Login with Backlog</a>');
+  });
+
+  app.get('/', (_req: express.Request, res: express.Response) => {
+    res.send('Hello');
+  });
 
   app.post('/mcp', async (req: express.Request, res: express.Response) => {
     const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });

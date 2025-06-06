@@ -24,7 +24,7 @@ Backlog API とやり取りするための Model Context Protocol（MCP）サー
 
 - Docker
 - APIアクセスが可能なBacklogアカウント
-- Backlog OAuthクライアントID・クライアントシークレット・リフレッシュトークン
+- Backlog OAuthクライアントIDとクライアントシークレット
 
 ### オプション1: Docker経由でのインストール
 
@@ -47,21 +47,23 @@ Backlog API とやり取りするための Model Context Protocol（MCP）サー
         "-e", "BACKLOG_DOMAIN",
         "-e", "BACKLOG_CLIENT_ID",
         "-e", "BACKLOG_CLIENT_SECRET",
-        "-e", "BACKLOG_REFRESH_TOKEN",
+        "-e", "BACKLOG_REDIRECT_URI",
         "ghcr.io/nulab/backlog-mcp-server"
       ],
       "env": {
         "BACKLOG_DOMAIN": "your-domain.backlog.com",
         "BACKLOG_CLIENT_ID": "your-client-id",
         "BACKLOG_CLIENT_SECRET": "your-client-secret",
-        "BACKLOG_REFRESH_TOKEN": "your-refresh-token"
+        "BACKLOG_REDIRECT_URI": "http://localhost:3000/callback"
       }
     }
   }
 }
 ```
 
-`your-domain.backlog.com` を実際のBacklogドメインに置き換え、OAuth認証情報を設定してください。
+`your-domain.backlog.com` を実際のBacklogドメインに置き換え、OAuth認証情報を設定してください。リフレッシュトークンは認可後に自動で保存されます。
+
+サーバー起動後、ブラウザで `http://localhost:3000/auth` にアクセスすると OAuth 認可画面へリダイレクトされます。`BACKLOG_REDIRECT_URI` で指定したパスで認可レスポンスを受け取り、トークンが取得されます。
 
 ✅ `--pull always` を使用できない場合は、次のコマンドで手動でイメージを更新できます：
 
@@ -91,8 +93,7 @@ docker pull ghcr.io/nulab/backlog-mcp-server:latest
         "env": {
           "BACKLOG_DOMAIN": "your-domain.backlog.com",
           "BACKLOG_CLIENT_ID": "your-client-id",
-          "BACKLOG_CLIENT_SECRET": "your-client-secret",
-          "BACKLOG_REFRESH_TOKEN": "your-refresh-token"
+          "BACKLOG_CLIENT_SECRET": "your-client-secret"
         }
       }
     }
@@ -227,7 +228,6 @@ PROJECT-KEYプロジェクトの「repo-name」リポジトリで、ブランチ
         "-e", "BACKLOG_DOMAIN",
         "-e", "BACKLOG_CLIENT_ID",
         "-e", "BACKLOG_CLIENT_SECRET",
-        "-e", "BACKLOG_REFRESH_TOKEN",
         "-v", "/yourcurrentdir/.backlog-mcp-serverrc.json:/root/.backlog-mcp-serverrc.json:ro",
         "ghcr.io/nulab/backlog-mcp-server"
       ],
@@ -235,7 +235,7 @@ PROJECT-KEYプロジェクトの「repo-name」リポジトリで、ブランチ
         "BACKLOG_DOMAIN": "your-domain.backlog.com",
         "BACKLOG_CLIENT_ID": "your-client-id",
         "BACKLOG_CLIENT_SECRET": "your-client-secret",
-        "BACKLOG_REFRESH_TOKEN": "your-refresh-token"
+        "BACKLOG_REDIRECT_URI": "http://localhost:3000/callback"
       }
     }
   }
@@ -291,7 +291,6 @@ translationConfig/.backlog-mcp-serverrc.json.example
         "-e", "BACKLOG_DOMAIN",
         "-e", "BACKLOG_CLIENT_ID",
         "-e", "BACKLOG_CLIENT_SECRET",
-        "-e", "BACKLOG_REFRESH_TOKEN",
         "-e", "BACKLOG_MCP_TOOL_ADD_ISSUE_COMMENT_DESCRIPTION",
         "ghcr.io/nulab/backlog-mcp-server"
       ],
@@ -299,7 +298,6 @@ translationConfig/.backlog-mcp-serverrc.json.example
         "BACKLOG_DOMAIN": "your-domain.backlog.com",
         "BACKLOG_CLIENT_ID": "your-client-id",
         "BACKLOG_CLIENT_SECRET": "your-client-secret",
-        "BACKLOG_REFRESH_TOKEN": "your-refresh-token",
         "BACKLOG_MCP_TOOL_ADD_ISSUE_COMMENT_DESCRIPTION": "代替の説明文"
       }
     }
@@ -392,7 +390,6 @@ MAX_TOKENS=10000
         "-e", "BACKLOG_DOMAIN",
         "-e", "BACKLOG_CLIENT_ID",
         "-e", "BACKLOG_CLIENT_SECRET",
-        "-e", "BACKLOG_REFRESH_TOKEN",
         "-e", "MAX_TOKENS",
         "-e", "OPTIMIZE_RESPONSE",
         "-e", "PREFIX",
@@ -403,7 +400,6 @@ MAX_TOKENS=10000
         "BACKLOG_DOMAIN": "your-domain.backlog.com",
         "BACKLOG_CLIENT_ID": "your-client-id",
         "BACKLOG_CLIENT_SECRET": "your-client-secret",
-        "BACKLOG_REFRESH_TOKEN": "your-refresh-token",
         "MAX_TOKENS": "10000",
         "OPTIMIZE_RESPONSE": "1",
         "PREFIX": "backlog_",
