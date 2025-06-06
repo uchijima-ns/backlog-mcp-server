@@ -10,9 +10,11 @@
     "prebuild": "node scripts/replace-version.js",
     "build": "tsc",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest",
+    "test:win": "set NODE_OPTIONS=--experimental-vm-modules && jest",
     "test:coverage": "NODE_OPTIONS=--experimental-vm-modules jest --coverage",
     "lint": "eslint . --ext .ts",
-    "lint:fix": "eslint . --ext .ts --fix"
+    "lint:fix": "eslint . --ext .ts --fix",
+    "start": "node build/index.js"
   },
   "files": [
     "build"

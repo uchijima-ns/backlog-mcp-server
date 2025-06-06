@@ -48,10 +48,10 @@ const state = crypto.randomUUID();
 const authorizationURL = oauth.getAuthorizationURL({ host: domain, redirectUri, state });
 
 const tokenPath = path.resolve(process.env.HOME ?? '.', '.backlog-oauth.json');
-let token: backlogjs.AccessToken | null = null;
+let token:any = null;
 
 try {
-  const saved = JSON.parse(await fs.readFile(tokenPath, 'utf-8')) as backlogjs.AccessToken;
+  const saved = JSON.parse(await fs.readFile(tokenPath, 'utf-8'));
   if (saved.refresh_token) {
     token = await oauth.refreshAccessToken({ host: domain, refreshToken: saved.refresh_token });
     await fs.writeFile(tokenPath, JSON.stringify(token, null, 2), 'utf-8');
@@ -188,6 +188,8 @@ async function main() {
     await fs.writeFile(tokenPath, JSON.stringify(token, null, 2), 'utf-8');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (backlog as any).accessToken = token.access_token;
+    // ローカル実行時にBearerトークンを見たい場合は以下を実行
+    // console.log('Bearer:', token.access_token);
     globalThis.setTimeout(scheduleRefresh, Math.max(token.expires_in - 60, 60) * 1000);
       res.redirect('/');
     } catch (e) {
