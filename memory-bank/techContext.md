@@ -50,7 +50,6 @@ Create a `.env` file during development with the following variables:
 BACKLOG_DOMAIN=your-domain.backlog.com
 BACKLOG_CLIENT_ID=your-client-id
 BACKLOG_CLIENT_SECRET=your-client-secret
-BACKLOG_REFRESH_TOKEN=your-refresh-token
 ```
 
 ## Technical Constraints
@@ -58,7 +57,7 @@ BACKLOG_REFRESH_TOKEN=your-refresh-token
 ### Backlog API
 - Be mindful of API rate limits
 - Some APIs require specific permissions
-- API keys are issued per user and operate with that user's permissions
+- OAuth credentials (client ID, client secret) are issued per user and the refresh token is stored automatically after authorization
 - Large responses may need pagination or token limiting
 
 ### MCP Protocol
@@ -97,8 +96,7 @@ graph TD
    docker run -i --rm \
      -e BACKLOG_DOMAIN=your-domain.backlog.com \
      -e BACKLOG_CLIENT_ID=your-client-id \
-     -e BACKLOG_CLIENT_SECRET=your-client-secret \
-     -e BACKLOG_REFRESH_TOKEN=your-refresh-token \
+    -e BACKLOG_CLIENT_SECRET=your-client-secret \
      -v /path/to/.backlog-mcp-serverrc.json:/root/.backlog-mcp-serverrc.json:ro \
      ghcr.io/nulab/backlog-mcp-server
    ```
@@ -108,7 +106,6 @@ graph TD
    BACKLOG_DOMAIN=your-domain.backlog.com \
    BACKLOG_CLIENT_ID=your-client-id \
    BACKLOG_CLIENT_SECRET=your-client-secret \
-   BACKLOG_REFRESH_TOKEN=your-refresh-token \
    node build/index.js
    ```
 
@@ -139,7 +136,7 @@ npm test -- -t "getSpace"
 
 ## Security Considerations
 
-- Secure management of API keys
+- Secure management of OAuth credentials
 - Injection of sensitive information through environment variables
 - Principle of least privilege in containers
 - Input validation to prevent injection attacks

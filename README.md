@@ -24,7 +24,7 @@ A Model Context Protocol (MCP) server for interacting with the Backlog API. This
 
 - Docker
 - A Backlog account with API access
-- OAuth client credentials and refresh token from your Backlog account
+- OAuth client credentials from your Backlog account
 
 ### Option 1: Install via Docker
 
@@ -47,21 +47,23 @@ The easiest way to use this MCP server is through MCP configurations:
         "-e", "BACKLOG_DOMAIN",
         "-e", "BACKLOG_CLIENT_ID",
         "-e", "BACKLOG_CLIENT_SECRET",
-        "-e", "BACKLOG_REFRESH_TOKEN",
+        "-e", "BACKLOG_REDIRECT_URI",
         "ghcr.io/nulab/backlog-mcp-server"
       ],
       "env": {
         "BACKLOG_DOMAIN": "your-domain.backlog.com",
         "BACKLOG_CLIENT_ID": "your-client-id",
         "BACKLOG_CLIENT_SECRET": "your-client-secret",
-        "BACKLOG_REFRESH_TOKEN": "your-refresh-token"
+        "BACKLOG_REDIRECT_URI": "http://localhost:3000/callback"
       }
     }
   }
 }
 ```
 
-Replace `your-domain.backlog.com` with your Backlog domain and set the OAuth credentials accordingly.
+Replace `your-domain.backlog.com` with your Backlog domain and set the OAuth credentials accordingly. The refresh token will be saved automatically after authorization.
+
+After starting the container, access `http://localhost:3000/auth` in your browser to complete the OAuth flow. The server will handle the authorization response at the path specified in `BACKLOG_REDIRECT_URI`.
 
 ✅ If you cannot use --pull always, you can manually update the image using:
 
@@ -92,7 +94,7 @@ docker pull ghcr.io/nulab/backlog-mcp-server:latest
           "BACKLOG_DOMAIN": "your-domain.backlog.com",
           "BACKLOG_CLIENT_ID": "your-client-id",
           "BACKLOG_CLIENT_SECRET": "your-client-secret",
-          "BACKLOG_REFRESH_TOKEN": "your-refresh-token"
+          "BACKLOG_REDIRECT_URI": "http://localhost:3000/callback"
         }
       }
     }
@@ -283,7 +285,6 @@ Sample config:
         "-e", "BACKLOG_DOMAIN",
         "-e", "BACKLOG_CLIENT_ID",
         "-e", "BACKLOG_CLIENT_SECRET",
-        "-e", "BACKLOG_REFRESH_TOKEN",
         "-v", "/yourcurrentdir/.backlog-mcp-serverrc.json:/root/.backlog-mcp-serverrc.json:ro",
         "ghcr.io/nulab/backlog-mcp-server"
       ],
@@ -291,7 +292,7 @@ Sample config:
         "BACKLOG_DOMAIN": "your-domain.backlog.com",
         "BACKLOG_CLIENT_ID": "your-client-id",
         "BACKLOG_CLIENT_SECRET": "your-client-secret",
-        "BACKLOG_REFRESH_TOKEN": "your-refresh-token"
+        "BACKLOG_REDIRECT_URI": "http://localhost:3000/callback"
       }
     }
   }
@@ -347,7 +348,7 @@ To override the TOOL_ADD_ISSUE_COMMENT_DESCRIPTION:
         "-e", "BACKLOG_DOMAIN",
         "-e", "BACKLOG_CLIENT_ID",
         "-e", "BACKLOG_CLIENT_SECRET",
-        "-e", "BACKLOG_REFRESH_TOKEN",
+        "-e", "BACKLOG_REDIRECT_URI",
         "-e", "BACKLOG_MCP_TOOL_ADD_ISSUE_COMMENT_DESCRIPTION"
         "ghcr.io/nulab/backlog-mcp-server"
       ],
@@ -355,7 +356,7 @@ To override the TOOL_ADD_ISSUE_COMMENT_DESCRIPTION:
         "BACKLOG_DOMAIN": "your-domain.backlog.com",
         "BACKLOG_CLIENT_ID": "your-client-id",
         "BACKLOG_CLIENT_SECRET": "your-client-secret",
-        "BACKLOG_REFRESH_TOKEN": "your-refresh-token",
+        "BACKLOG_REDIRECT_URI": "http://localhost:3000/callback",
         "BACKLOG_MCP_TOOL_ADD_ISSUE_COMMENT_DESCRIPTION": "An alternative description"
       }
     }
@@ -448,7 +449,6 @@ This section demonstrates advanced configuration using multiple environment vari
         "-e", "BACKLOG_DOMAIN",
         "-e", "BACKLOG_CLIENT_ID",
         "-e", "BACKLOG_CLIENT_SECRET",
-        "-e", "BACKLOG_REFRESH_TOKEN",
         "-e", "MAX_TOKENS",
         "-e", "OPTIMIZE_RESPONSE",
         "-e", "PREFIX",
@@ -459,7 +459,6 @@ This section demonstrates advanced configuration using multiple environment vari
         "BACKLOG_DOMAIN": "your-domain.backlog.com",
         "BACKLOG_CLIENT_ID": "your-client-id",
         "BACKLOG_CLIENT_SECRET": "your-client-secret",
-        "BACKLOG_REFRESH_TOKEN": "your-refresh-token",
         "MAX_TOKENS": "10000",
         "OPTIMIZE_RESPONSE": "1",
         "PREFIX": "backlog_",

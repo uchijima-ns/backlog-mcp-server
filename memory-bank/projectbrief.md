@@ -29,7 +29,7 @@
 ## Deployment Method
 - Provided as a Docker container
 - Published to GitHub Container Registry (ghcr.io)
-- Configuration injected via environment variables (`BACKLOG_DOMAIN`, `BACKLOG_CLIENT_ID`, `BACKLOG_CLIENT_SECRET`, `BACKLOG_REFRESH_TOKEN`)
+- Configuration injected via environment variables (`BACKLOG_DOMAIN`, `BACKLOG_CLIENT_ID`, `BACKLOG_CLIENT_SECRET`)
 
 ## Usage
 - Register as an MCP server in Claude settings
