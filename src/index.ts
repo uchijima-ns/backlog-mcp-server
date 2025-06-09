@@ -308,6 +308,138 @@ async function main() {
     }
   });
 
+  // Dynamic Client Registration endpoint (RFC 7591)
+  app.post('/register', (req: express.Request, res: express.Response) => {
+    try {
+      const {
+        client_name,
+        client_uri,
+        redirect_uris,
+        grant_types = ['authorization_code'],
+        response_types = ['code'],
+        scope,
+        token_endpoint_auth_method = 'none'
+      } = req.body;
+
+      console.log('Client registration request:', {
+        client_name,
+        client_uri,
+        redirect_uris,
+        grant_types,
+        response_types,
+        scope
+      });
+
+      // 基本的なバリデーション
+      if (!client_name) {
+        return res.status(400).json({
+          error: 'invalid_client_metadata',
+          error_description: 'client_name is required'
+        });
+      }
+
+      if (!redirect_uris || !Array.isArray(redirect_uris) || redirect_uris.length === 0) {
+        return res.status(400).json({
+          error: 'invalid_client_metadata',
+          error_description: 'redirect_uris is required and must be a non-empty array'
+        });
+      }
+
+      // redirect URIの検証
+      const validRedirectUris = redirect_uris.filter((uri: string) => {
+        if (typeof uri !== 'string') return false;
+        
+        try {
+          const url = new URL(uri);
+          // HTTPS または localhost HTTP を許可
+          return url.protocol === 'https:' || 
+                (url.protocol === 'http:' && (
+                  url.hostname === 'localhost' || 
+                  url.hostname === '127.0.0.1' ||
+                  url.hostname.endsWith('.local')
+                ));
+        } catch {
+          return false;
+        }
+      });
+
+      if (validRedirectUris.length === 0) {
+        return res.status(400).json({
+          error: 'invalid_redirect_uri',
+          error_description: 'All redirect URIs must be HTTPS or localhost HTTP'
+        });
+      }
+
+      // grant_typesの検証
+      const supportedGrantTypes = ['authorization_code', 'refresh_token'];
+      const invalidGrantTypes = grant_types.filter((type: string) => !supportedGrantTypes.includes(type));
+      
+      if (invalidGrantTypes.length > 0) {
+        return res.status(400).json({
+          error: 'invalid_client_metadata',
+          error_description: `Unsupported grant types: ${invalidGrantTypes.join(', ')}`
+        });
+      }
+
+      // response_typesの検証
+      const supportedResponseTypes = ['code'];
+      const invalidResponseTypes = response_types.filter((type: string) => !supportedResponseTypes.includes(type));
+      
+      if (invalidResponseTypes.length > 0) {
+        return res.status(400).json({
+          error: 'invalid_client_metadata',
+          error_description: `Unsupported response types: ${invalidResponseTypes.join(', ')}`
+        });
+      }
+
+      // token_endpoint_auth_methodの検証
+      const supportedAuthMethods = ['none', 'client_secret_post'];
+      if (!supportedAuthMethods.includes(token_endpoint_auth_method)) {
+        return res.status(400).json({
+          error: 'invalid_client_metadata',
+          error_description: `Unsupported token endpoint auth method: ${token_endpoint_auth_method}`
+        });
+      }
+
+      // クライアントIDとシークレットの生成
+      const clientId = crypto.randomUUID();
+      const clientSecret = token_endpoint_auth_method === 'none' ? undefined : crypto.randomBytes(32).toString('hex');
+
+      // クライアント登録情報
+      const clientRegistration = {
+        client_id: clientId,
+        client_name,
+        client_uri: client_uri || undefined,
+        redirect_uris: validRedirectUris,
+        grant_types,
+        response_types,
+        token_endpoint_auth_method,
+        scope: scope || 'read write',
+        
+        // 追加のメタデータ
+        client_id_issued_at: Math.floor(Date.now() / 1000),
+        ...(clientSecret && { client_secret: clientSecret }),
+        ...(clientSecret && { client_secret_expires_at: 0 }) // 0 = never expires
+      };
+
+      console.log('Client registered successfully:', {
+        client_id: clientId,
+        client_name,
+        redirect_uris: validRedirectUris
+      });
+
+      // 201 Created で登録情報を返す
+      res.status(201).json(clientRegistration);
+
+    } catch (error) {
+      console.error('Client registration error:', error);
+      res.status(500).json({
+        error: 'server_error',
+        error_description: 'Internal server error during client registration'
+      });
+    }
+  });
+
   app.post('/mcp', async (req: express.Request, res: express.Response) => {
     await transport.handleRequest(req, res, req.body);
   });
