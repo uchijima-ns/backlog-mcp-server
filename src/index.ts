@@ -199,8 +199,13 @@ async function main() {
       response_types_supported: ["code"],
       response_modes_supported: ["query"],
       grant_types_supported: ["authorization_code", "refresh_token"],
-      token_endpoint_auth_methods_supported: ["none"], // PKCEを使用するため
+      token_endpoint_auth_methods_supported: [
+        "none",                    // PKCE用（公開クライアント）
+        "client_secret_basic",     // HTTP Basic認証
+        "client_secret_post"       // POSTボディ内認証
+      ],
       code_challenge_methods_supported: ["S256"], // PKCE必須
+
     };
 
     res.json(metadata);
@@ -228,40 +233,142 @@ async function main() {
     }
   });
 
+  // クライアント認証を処理するミドルウェア
+  function authenticateClient(req: express.Request): { clientId?: string; clientSecret?: string; error?: any } {
+    const authHeader = req.headers.authorization;
+    const { client_id, client_secret } = req.body;
+
+    // 1. HTTP Basic認証をチェック
+    if (authHeader && authHeader.startsWith('Basic ')) {
+      try {
+        const credentials = Buffer.from(authHeader.slice(6), 'base64').toString('utf-8');
+        const [clientId, clientSecret] = credentials.split(':', 2);
+        
+        if (clientId && clientSecret) {
+          return { clientId, clientSecret };
+        }
+      } catch (error) {
+        return { 
+          error: {
+            error: 'invalid_client',
+            error_description: 'Invalid client credentials in Authorization header'
+          }
+        };
+      }
+    }
+
+    // 2. POSTボディ内の認証情報をチェック
+    if (client_id && client_secret) {
+      return { clientId: client_id, clientSecret: client_secret };
+    }
+
+    // 3. client_id のみ（PKCEクライアント）
+    if (client_id && !client_secret) {
+      return { clientId: client_id };
+    }
+
+    return {
+      error: {
+        error: 'invalid_client',
+        error_description: 'Client authentication required'
+      }
+    };
+  }
   // OAuth トークン交換
   app.post('/token', async (req: express.Request, res: express.Response) => {
-    const { grant_type, code, redirect_uri, code_verifier } = req.body;
+    const { grant_type, code, redirect_uri, code_verifier, refresh_token } = req.body;
+
+    console.log('Token request:', {
+      grant_type,
+      code: code ? (code.startsWith('mcp_') ? 'mcp_code' : 'backlog_code') : 'absent',
+      redirect_uri,
+      code_verifier: code_verifier ? 'present' : 'absent',
+      refresh_token: refresh_token ? 'present' : 'absent'
+    });
+
+    // クライアント認証
+    const authResult = authenticateClient(req);
+    if (authResult.error) {
+      return res.status(401).json(authResult.error);
+    }
+
+    const authenticatedClientId = authResult.clientId;
+    console.log('Authenticated client:', authenticatedClientId);
 
     if (grant_type === 'authorization_code') {
       // 認証コード交換
-      if (!code || !code.startsWith('mcp_')) {
+      if (!code) {
+        return res.status(400).json({
+          error: 'invalid_request',
+          error_description: 'Missing authorization code'
+        });
+      }
+
+      // MCP認証コードの処理
+      if (code.startsWith('mcp_')) {
+        // 既にBacklogから取得済みのトークンを返す
+        if (!token) {
+          return res.status(400).json({
+            error: 'invalid_grant',
+            error_description: 'No valid session found'
+          });
+        }
+
+        console.log('Returning cached Backlog token');
+        return res.json({
+          access_token: token.access_token,
+          token_type: 'Bearer',
+          expires_in: token.expires_in,
+          refresh_token: token.refresh_token,
+          scope: 'read write'
+        });
+      }
+
+      // 直接のBacklog認証コードの処理
+      try {
+        const newToken = await oauth.getAccessToken({ 
+          host: domain, 
+          code, 
+          redirectUri: redirect_uri || redirectUri 
+        });
+
+        // トークンを保存
+        token = newToken;
+        await fs.writeFile(tokenPath, JSON.stringify(token, null, 2), { 
+          encoding: 'utf-8',
+          mode: 0o600 
+        });
+        
+        (backlog as any).accessToken = token.access_token;
+        globalThis.setTimeout(scheduleRefresh, Math.max(token.expires_in - 60, 60) * 1000);
+
+        console.log('New Backlog token obtained');
+        return res.json({
+          access_token: token.access_token,
+          token_type: 'Bearer',
+          expires_in: token.expires_in,
+          refresh_token: token.refresh_token,
+          scope: 'read write'
+        });
+
+      } catch (error) {
+        console.error('Token exchange error:', error);
         return res.status(400).json({
           error: 'invalid_grant',
           error_description: 'Invalid authorization code'
         });
       }
 
-      // 既にBacklogから取得済みのトークンを返す
-      if (!token) {
+    } else if (grant_type === 'refresh_token') {
+      // リフレッシュトークン処理
+      if (!refresh_token) {
         return res.status(400).json({
-          error: 'invalid_grant',
-          error_description: 'No valid session found'
+          error: 'invalid_request',
+          error_description: 'Missing refresh token'
         });
       }
 
-      res.json({
-        access_token: token.access_token,
-        token_type: 'Bearer',
-        expires_in: token.expires_in,
-        refresh_token: token.refresh_token,
-        scope: 'read write' // Backlogのスコープ
-      });
-
-    } else if (grant_type === 'refresh_token') {
-      // リフレッシュトークン
-      const { refresh_token } = req.body;
-      
-      if (!refresh_token || refresh_token !== token?.refresh_token) {
+      if (refresh_token !== token?.refresh_token) {
         return res.status(400).json({
           error: 'invalid_grant',
           error_description: 'Invalid refresh token'
@@ -269,7 +376,7 @@ async function main() {
       }
 
       try {
-        // Backlogのリフレッシュトークンを使用
+        console.log('Refreshing token...');
         const refreshedToken = await oauth.refreshAccessToken({
           host: domain,
           refreshToken: refresh_token
@@ -284,7 +391,8 @@ async function main() {
         
         (backlog as any).accessToken = token.access_token;
         
-        res.json({
+        console.log('Token refresh successful');
+        return res.json({
           access_token: token.access_token,
           token_type: 'Bearer',
           expires_in: token.expires_in,
@@ -294,14 +402,14 @@ async function main() {
 
       } catch (error) {
         console.error('Token refresh error:', error);
-        res.status(400).json({
+        return res.status(400).json({
           error: 'invalid_grant',
           error_description: 'Failed to refresh token'
         });
       }
 
     } else {
-      res.status(400).json({
+      return res.status(400).json({
         error: 'unsupported_grant_type',
         error_description: 'Only authorization_code and refresh_token are supported'
       });
@@ -318,7 +426,7 @@ async function main() {
         grant_types = ['authorization_code'],
         response_types = ['code'],
         scope,
-        token_endpoint_auth_method = 'none'
+        token_endpoint_auth_method = 'client_secret_basic'
       } = req.body;
 
       console.log('Client registration request:', {
