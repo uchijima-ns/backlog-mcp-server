@@ -188,12 +188,12 @@ async function main() {
   // OAuth Authorization Server Metadata (RFC 8414)
   // MCPクライアントがOAuth endpoints を自動発見するためのエンドポイント
   app.get('/.well-known/oauth-authorization-server', (req: express.Request, res: express.Response) => {
-    const backlogBaseUrl = `https://${domain}`;
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
     const metadata = {
-      // 必須フィールド
-      issuer: backlogBaseUrl,
-      authorization_endpoint: authorizationURL,
-      token_endpoint: `${backlogBaseUrl}/api/v2/oauth2/token`,
+      issuer: baseUrl,
+      authorization_endpoint: `${baseUrl}/authorize`,
+      token_endpoint: `${baseUrl}/token`,
+      registration_endpoint: `${baseUrl}/register`,
       
       // オプショナルだが推奨されるフィールド
       response_types_supported: ["code"],
@@ -205,8 +205,7 @@ async function main() {
 
     res.json(metadata);
   });
-/*
-  app.get('/auth', (_req: express.Request, res: express.Response) => {
+  app.get('/authorize', (_req: express.Request, res: express.Response) => {
     res.redirect(authorizationURL);
   });
 
@@ -228,7 +227,86 @@ async function main() {
       res.redirect('/login');
     }
   });
-  */
+
+  // OAuth トークン交換
+  app.post('/token', async (req: express.Request, res: express.Response) => {
+    const { grant_type, code, redirect_uri, code_verifier } = req.body;
+
+    if (grant_type === 'authorization_code') {
+      // 認証コード交換
+      if (!code || !code.startsWith('mcp_')) {
+        return res.status(400).json({
+          error: 'invalid_grant',
+          error_description: 'Invalid authorization code'
+        });
+      }
+
+      // 既にBacklogから取得済みのトークンを返す
+      if (!token) {
+        return res.status(400).json({
+          error: 'invalid_grant',
+          error_description: 'No valid session found'
+        });
+      }
+
+      res.json({
+        access_token: token.access_token,
+        token_type: 'Bearer',
+        expires_in: token.expires_in,
+        refresh_token: token.refresh_token,
+        scope: 'read write' // Backlogのスコープ
+      });
+
+    } else if (grant_type === 'refresh_token') {
+      // リフレッシュトークン
+      const { refresh_token } = req.body;
+      
+      if (!refresh_token || refresh_token !== token?.refresh_token) {
+        return res.status(400).json({
+          error: 'invalid_grant',
+          error_description: 'Invalid refresh token'
+        });
+      }
+
+      try {
+        // Backlogのリフレッシュトークンを使用
+        const refreshedToken = await oauth.refreshAccessToken({
+          host: domain,
+          refreshToken: refresh_token
+        });
+
+        // 新しいトークンを保存
+        token = refreshedToken;
+        await fs.writeFile(tokenPath, JSON.stringify(token, null, 2), { 
+          encoding: 'utf-8',
+          mode: 0o600 
+        });
+        
+        (backlog as any).accessToken = token.access_token;
+        
+        res.json({
+          access_token: token.access_token,
+          token_type: 'Bearer',
+          expires_in: token.expires_in,
+          refresh_token: token.refresh_token,
+          scope: 'read write'
+        });
+
+      } catch (error) {
+        console.error('Token refresh error:', error);
+        res.status(400).json({
+          error: 'invalid_grant',
+          error_description: 'Failed to refresh token'
+        });
+      }
+
+    } else {
+      res.status(400).json({
+        error: 'unsupported_grant_type',
+        error_description: 'Only authorization_code and refresh_token are supported'
+      });
+    }
+  });
 
   app.post('/mcp', async (req: express.Request, res: express.Response) => {
     await transport.handleRequest(req, res, req.body);
