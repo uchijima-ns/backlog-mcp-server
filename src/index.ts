@@ -497,7 +497,7 @@ async function main() {
       }
 
       // token_endpoint_auth_methodの検証
-      const supportedAuthMethods = ['none', 'client_secret_post'];
+      const supportedAuthMethods = ['none', 'client_secret_post','client_secret_basic'];
       if (!supportedAuthMethods.includes(token_endpoint_auth_method)) {
         return res.status(400).json({
           error: 'invalid_client_metadata',
