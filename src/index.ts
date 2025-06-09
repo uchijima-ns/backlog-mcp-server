@@ -173,8 +173,38 @@ async function main() {
   const app = express();
   app.use(express.json());
 
+  // セキュリティヘッダー
+  app.use((req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    res.removeHeader('X-Powered-By');
+    next();
+  });
+
   const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });
   await server.connect(transport);
+
+  // OAuth Authorization Server Metadata (RFC 8414)
+  // MCPクライアントがOAuth endpoints を自動発見するためのエンドポイント
+  app.get('/.well-known/oauth-authorization-server', (req: express.Request, res: express.Response) => {
+    const backlogBaseUrl = `https://${domain}`;
+    const metadata = {
+      // 必須フィールド
+      issuer: backlogBaseUrl,
+      authorization_endpoint: `${backlogBaseUrl}/OAuth2AccessRequest.action`,
+      token_endpoint: `${backlogBaseUrl}/api/v2/oauth2/token`,
+      
+      // オプショナルだが推奨されるフィールド
+      response_types_supported: ["code"],
+      response_modes_supported: ["query"],
+      grant_types_supported: ["authorization_code", "refresh_token"],
+      token_endpoint_auth_methods_supported: ["none"], // PKCEを使用するため
+      code_challenge_methods_supported: ["S256"], // PKCE必須
+    };
+
+    res.json(metadata);
+  });
 
   app.get('/auth', (_req: express.Request, res: express.Response) => {
     res.redirect(authorizationURL);
