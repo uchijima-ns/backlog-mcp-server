@@ -173,6 +173,9 @@ async function main() {
   const app = express();
   app.use(express.json());
 
+  const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });
+  await server.connect(transport);
+
   app.get('/auth', (_req: express.Request, res: express.Response) => {
     res.redirect(authorizationURL);
   });
@@ -188,8 +191,6 @@ async function main() {
     await fs.writeFile(tokenPath, JSON.stringify(token, null, 2), 'utf-8');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (backlog as any).accessToken = token.access_token;
-    // ローカル実行時にBearerトークンを見たい場合は以下を実行
-    // console.log('Bearer:', token.access_token);
     globalThis.setTimeout(scheduleRefresh, Math.max(token.expires_in - 60, 60) * 1000);
       res.redirect('/');
     } catch (e) {
@@ -198,23 +199,10 @@ async function main() {
     }
   });
 
-  app.get('/login', (_req: express.Request, res: express.Response) => {
-    res.send('<a href="/auth">Login with Backlog</a>');
-  });
-
-  app.get('/', (_req: express.Request, res: express.Response) => {
-    res.send('Hello');
-  });
-
   app.post('/mcp', async (req: express.Request, res: express.Response) => {
-    const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });
-    res.on('close', () => {
-      transport.close();
-    });
-    await server.connect(transport);
     await transport.handleRequest(req, res, req.body);
   });
-
+  // GET リクエストは SSE エンドポイントとの互換性のために実装する必要がある
   app.get('/mcp', (req: express.Request, res: express.Response) => {
     res.writeHead(405).end(JSON.stringify({
       jsonrpc: '2.0',
@@ -225,16 +213,10 @@ async function main() {
       id: null
     }));
   });
-
-  app.delete('/mcp', (req: express.Request, res: express.Response) => {
-    res.writeHead(405).end(JSON.stringify({
-      jsonrpc: '2.0',
-      error: {
-        code: -32000,
-        message: 'Method not allowed.'
-      },
-      id: null
-    }));
+  // Graceful shutdown
+  process.on('SIGTERM', async () => {
+    transport.close();
+    process.exit(0);
   });
 
   app.listen(port, () => {
