@@ -199,11 +199,7 @@ async function main() {
       response_types_supported: ["code"],
       response_modes_supported: ["query"],
       grant_types_supported: ["authorization_code", "refresh_token"],
-      token_endpoint_auth_methods_supported: [
-        "none",                    // PKCE用（公開クライアント）
-        "client_secret_basic",     // HTTP Basic認証
-        "client_secret_post"       // POSTボディ内認証
-      ],
+      token_endpoint_auth_methods_supported: ["client_secret_basic"],
       code_challenge_methods_supported: ["S256"], // PKCE必須
 
     };
