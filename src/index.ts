@@ -192,7 +192,7 @@ async function main() {
     const metadata = {
       // 必須フィールド
       issuer: backlogBaseUrl,
-      authorization_endpoint: `${backlogBaseUrl}/OAuth2AccessRequest.action`,
+      authorization_endpoint: authorizationURL,
       token_endpoint: `${backlogBaseUrl}/api/v2/oauth2/token`,
       
       // オプショナルだが推奨されるフィールド
@@ -205,7 +205,7 @@ async function main() {
 
     res.json(metadata);
   });
-
+/*
   app.get('/auth', (_req: express.Request, res: express.Response) => {
     res.redirect(authorizationURL);
   });
@@ -228,6 +228,7 @@ async function main() {
       res.redirect('/login');
     }
   });
+  */
 
   app.post('/mcp', async (req: express.Request, res: express.Response) => {
     await transport.handleRequest(req, res, req.body);
