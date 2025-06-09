@@ -188,7 +188,7 @@ async function main() {
   // OAuth Authorization Server Metadata (RFC 8414)
   // MCPクライアントがOAuth endpoints を自動発見するためのエンドポイント
   app.get('/.well-known/oauth-authorization-server', (req: express.Request, res: express.Response) => {
-    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const baseUrl = `https://${req.get('host')}`;
     const metadata = {
       issuer: baseUrl,
       authorization_endpoint: `${baseUrl}/authorize`,
